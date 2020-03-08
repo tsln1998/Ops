@@ -133,7 +133,8 @@ def upload_backup(path):
             ret, info = qn_put_file(qn.upload_token(bucket_name, key, 120), key, path)
             if ret['key'] != key or ret['hash'] != qn_etag(path):
                 raise Exception('Upload to KODO failed')
-            print('Upload file %s to KODO success.' % key)
+            log('Upload file %s to KODO success.' % key)
+            return
     raise Exception('Upload file %s to cloud failed' % basename(path))
 
 
