@@ -1,0 +1,17 @@
+{
+  "storage_path": "/opt/backups",
+  "no_increment_backup": false,
+  "no_full_backup_by_week": true,
+  "dirs": {
+    "wwwroot": "/var/www"
+  },
+  "mysql" : {
+    "host": "127.0.0.1",
+    "port": "3306",
+    "username": "root",
+    "password": "root"
+  },
+  "databases": [
+    "example_db"
+  ]
+}
