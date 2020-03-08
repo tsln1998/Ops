@@ -59,18 +59,19 @@ def backup_directory(backup_name, path):
     backup_path = generate_path('%s-%s-%s.tar.gz' %
                                 (backup_name, current_date, "full" if is_full_backup else "increment"))
     # backup by tar
-    p = Popen(['tar', '-g', _TAR_FLAG, '-zcvf', backup_path, path], cwd=path, stderr=PIPE, stdout=PIPE)
-    if p.wait() != 0:
-        raise Exception('tar backup failed')
-    assert exists(backup_path)
+    p = Popen(['tar', '-g', _TAR_FLAG, '-zcvf', backup_path, path], cwd=path, stderr=PIPE, stdout=PIPE, bufsize=64)
     # check backup tar contains any valid file
     backup_has_valid_files = 0 < len(list(filter(
         lambda fn: not fn.endswith('/') and not fn.endswith('/%s' % _TAR_FLAG),
         map(
             lambda bs: bs.decode().rstrip('\n'),
-            p.stdout.readlines()
+            iter(p.stdout.readline, b'')
         )
     )))
+    p.stdout.close()
+    if p.wait() != 0:
+        raise Exception('tar backup failed')
+    assert exists(backup_path)
     # success
     if backup_has_valid_files:
         log("backup directory %s success." % backup_name)
