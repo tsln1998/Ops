@@ -7,6 +7,7 @@ from time import strftime, localtime, time as current_time
 from datetime import datetime as dt
 from json import load as json_load
 from tempfile import gettempdir
+from qiniu import Auth as QnAuth, put_file as qn_put_file, etag as qn_etag
 
 # disable increment backup
 NO_INCREMENT_BACKUP = None
@@ -123,8 +124,17 @@ def backup_database(config, databases):
 
 # upload the backup file to cloud
 def upload_backup(path):
-    # TODO: impl
-    log("upload backup file %s to cloud" % basename(path))
+    if 'qiniu' in _CONFIG:
+        access_key, secret_key, bucket_name = \
+            _CONFIG['qiniu']['access_key'], _CONFIG['qiniu']['secret_key'], _CONFIG['qiniu']['bucket_name']
+        if access_key is not None and secret_key is not None and bucket_name is not None:
+            qn = QnAuth(access_key, secret_key)
+            key = basename(path)
+            ret, info = qn_put_file(qn.upload_token(bucket_name, key, 120), key, path)
+            if ret['key'] != key or ret['hash'] != qn_etag(path):
+                raise Exception('Upload to KODO failed')
+            print('Upload file %s to KODO success.' % key)
+    raise Exception('Upload file %s to cloud failed' % basename(path))
 
 
 if __name__ == '__main__':
